@@ -1,4 +1,4 @@
-herename: Build
+name: Build
 on: [push]
 jobs:
   build:
