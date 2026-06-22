@@ -30,17 +30,38 @@ public class ThirdPersonMapsHUD {
         mapRenderer = client.gameRenderer.getMapRenderer();
     }
 
-    public void render(DrawContext context) {
-        if (shouldDraw(client)) {
-            boolean isPlayerLeftHanded = client.player.getMainArm() == Arm.LEFT;
-            if (client.player.getMainHandStack().isOf(Items.FILLED_MAP)) {
-                renderMapHUDFromItemStack(context, client.player.getMainHandStack(), isPlayerLeftHanded);
-            }
-            if (client.player.getOffHandStack().isOf(Items.FILLED_MAP)) {
-                renderMapHUDFromItemStack(context, client.player.getOffHandStack(), !isPlayerLeftHanded);
+public void render(DrawContext context) {
+    if (shouldDraw(client)) {
+        boolean isPlayerLeftHanded = client.player.getMainArm() == Arm.LEFT;
+        boolean mainHandHasMap = client.player.getMainHandStack().isOf(Items.FILLED_MAP);
+        boolean offHandHasMap = client.player.getOffHandStack().isOf(Items.FILLED_MAP);
+
+        if (mainHandHasMap) {
+            renderMapHUDFromItemStack(context, client.player.getMainHandStack(), isPlayerLeftHanded);
+        }
+        if (offHandHasMap) {
+            renderMapHUDFromItemStack(context, client.player.getOffHandStack(), !isPlayerLeftHanded);
+        }
+
+        // Fallback: not holding a map in either hand, check the hotbar instead
+        if (!mainHandHasMap && !offHandHasMap) {
+            ItemStack hotbarMap = findMapInHotbar();
+            if (hotbarMap != null) {
+                renderMapHUDFromItemStack(context, hotbarMap, isPlayerLeftHanded);
             }
         }
     }
+}
+
+private ItemStack findMapInHotbar() {
+    for (int i = 0; i < 9; i++) {
+        ItemStack stack = client.player.getInventory().getStack(i);
+        if (stack.isOf(Items.FILLED_MAP)) {
+            return stack;
+        }
+    }
+    return null;
+}
 
     private boolean shouldDraw(MinecraftClient client) {
         if (client.player == null) return false;
